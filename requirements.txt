@@ -1,0 +1,7 @@
+pytest
+python-dotenv
+pyodbc
+business-rule-engine
+pandas
+sqlalchemy
+math
