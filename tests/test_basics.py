@@ -7,7 +7,7 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
 
 from app.basics.addition import simple_addition
-from app.basics.factorial import compute_factorial
+from app.basics.factorial import compute_factorial, compute_factorial_prod, compute_factorial_without_math
 from app.basics.max_two_numbers import find_max_two_numbers
 from app.basics.simple_interest import calc_simple_interest
 from app.basics.complex_interest import calc_complex_interest
@@ -22,8 +22,19 @@ class BasicTest(unittest.TestCase):
     self.assertEqual(expected_result, simple_addition(first, second))
 
   def test_compute_factorial(self):
+    number = 6 
     expected_result = 720
-    self.assertEqual(expected_result, compute_factorial(6))
+    self.assertEqual(expected_result, compute_factorial(number))
+
+  def compute_factorial_prod(self):
+    number = 6 
+    expected_result = 720
+    self.assertEqual(expected_result, compute_factorial_prod(number))
+
+  def compute_factorial_without_math(self):
+    number = 6 
+    expected_result = 720
+    self.assertEqual(expected_result, compute_factorial_without_math(number))
 
   def test_find_max_two_numbers(self):
     expected_result = 100 
