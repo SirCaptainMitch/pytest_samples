@@ -6,7 +6,7 @@ current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
 sys.path.append(parent)
 
-from app.lists.list_multiplier import list_multiplier
+from app.lists.list_multiplier import list_multiplier, list_multiplier_without_math
 from app.lists.sum_of_array import sum_of_array
 from app.lists.find_second_largest_number import find_second_largest_number
 from app.lists.generate_list_partitions import generate_list_partitions
@@ -17,6 +17,11 @@ class ListTest(unittest.TestCase):
     l = [1,2,3]
     expected_result = 6
     self.assertEqual(expected_result, list_multiplier(l))
+
+  def test_list_multiplier_without_math(self):
+    l = [1,2,3]
+    expected_result = 6
+    self.assertEqual(expected_result, list_multiplier_without_math(l))
 
   def test_find_second_largest_number(self):
     l = [1,2,3]
