@@ -1,85 +1,83 @@
-# q1 = [ 'c#' ] # [1,2,3,5, 100]
-# q2 = [ 'AND' , 'python', 'pandas' ] # [ 3, 5, 8, 9 ]
-# q3 = [ 'OR' , 'java', 'pandas' ] # [3, 5, 8, 9] != [3, 5, 8, 9, 10, 11, 99]
-q4 = [ 'AND', ['OR', 'java', "mitchLang" ], 'c#' ] # [1, 2, 3, 5, 100]
-# q5 = [ 'AND', 
-#   ['OR', 
-#     [ 'AND',
-#       'python',
-#       'pandas' 
-#     ],
-#     'java'], 
-#   'c#' 
-# ] # [1, 2, 3, 5, 8, 9, 10, 11, 100]
-# q6 = [ 'AND' , [ 'OR' , 'java', 'mitchLang' ], 'python', 'pandas' ] # [3, 5, 8, 9]
-# q7 = [ 'OR' , [ 'AND' , 'java', 'mitchLang' ], 'python', 'pandas' ] # [3, 5, 8, 9, 14, 17, 99]
-# q8 = [ 'OR' , 'python', 'pandas' ] # [3, 5, 8, 9, 14, 17, 99]
 
-invertedList = { 
-  "c#": [1,2,3,5, 100],
-  "pandas": [3, 5, 8, 9, 99],
-  "python": [3, 5, 8, 9, 14, 17],
-  "java": [10, 11],
-  "mitchLang": [100, 101]
+def union(list):
 
-}
+  id_list = [y for x in list for y in x]
+  output = [x for x in set(id_list)]
+  output.sort()
+  return output
 
-def union(invertedList, tag_list):
-    one = [ x for x in tag_list if x in [y for y in invertedList]]
-    questions = [ v for (k,v) in invertedList.items() if k in [y for y in one ] ]
-    id_list = [y for x in questions for y in x]
-    output = [x for x in set(id_list)]
 
-    return output
+def intersect(list):
 
-def intersect(invertedList, tag_list):
-    one = [ x for x in tag_list if x in [y for y in invertedList]]    
-    questions = [ v for (k,v) in invertedList.items() if k in [y for y in one ] ]
+  id_list = [y for x in list for y in x]
+  output = [x for x in set(id_list) if id_list.count(x) > 1]
+  output.sort()
+  return output
 
-    if len(questions) > 1: 
-      id_list = [y for x in questions for y in x]
-      output = [x for x in set(id_list) if id_list.count(x) > 1]
-    else: 
-      output = id_list = [y for x in questions for y in x]
 
-    return output
+def lookup(obj, tag_list):
+  return {k:v for (k, v) in obj.items() if k in tag_list}
 
-def recursive_query_search(obj, query):
-  result = []
 
-  l = [ k for (k,v) in obj.items() if k in [x for x in query[1:] ] ]
-  sub = [x for x in query[1:] if x not in [x for x in obj]]
+def query_parser(obj, query):
+
+  operator_list = ['AND', 'OR']
+
+  if query[0] in operator_list:
+    if query[0] == 'AND':
+      tag_list = query[1:]
+      output = lookup(obj, tag_list)
+      id_list = [x for x in [v for (k,v) in output.items()]]
+      return intersect(id_list) if len(tag_list) > 1 else id_list[0]
+
+    if query[0] == 'OR':
+      tag_list = query[1:]
+      output = lookup(obj, tag_list)
+      id_list = [x for x in [v for (k,v) in output.items()]]
+      return  union(id_list)
+
+
+def query_search(obj, query):
   
-  if query[0] == 'AND': 
-    result = result + intersect(obj, l)
+  operator_list = ['AND', 'OR']
 
-  if len(l[1:]) > 1 :
-    result = result + [ v for (k,v) in obj.items() if k == query[0] ]
+  key_list = [x for x in obj]
+  tag_list = [x for x in query[1:] if x in key_list]
+  sub_list = [x for x in query[1:] if x not in key_list]
 
-  if len(l) == 0 :
-    result = result + [ v for (k,v) in obj.items() if k == query[0] ][0]
+  output = [ ]
+  pl1 = [] 
+  pl2 = []
+  pl3 = []
 
-  elif query[0] == 'OR':
-    u = union(obj, l)
-    i = intersect(obj, u + result) 
-    if len(i) > 0:
-      result = result + i 
-    else:
-      result = result + u      
+  if query[0] not in operator_list:
+    output = ( v for (k,v) in (lookup(obj, query)).items()).__next__()
+    return output
 
-  if len(sub) > 0:
-    for q in sub:
-      r = recursive_query_search(obj, q)
-      i = intersect(obj, r + result)
-      if len(i) > 0:
-        result = result + r 
-      else:
-        result = result + i
+  if query[0] in operator_list:
+    filtered_obj = lookup(obj, tag_list)
+    pl1 = query_parser(filtered_obj, [query[0]] + tag_list)
 
-  result = [x for x in set(result)]
-  result.sort()
-  return result
+    if len(sub_list) > 0:
+      for q in sub_list:       
+        r_tag_list = [ x for x in q[1:] if x in key_list]
+        r_sub_list = [x for x in q[1:] if x not in key_list]
+        
+        filtered_obj = lookup(obj, r_tag_list)        
+        pl2 = pl2 + query_parser(filtered_obj, q)
 
-print(recursive_query_search(invertedList, q4))
-# print(recursive_query_search(invertedList, q1))
+        if len(r_sub_list) > 0:
+          pl2 = pl2 + (query_search(obj, x) for x in r_sub_list).__next__()
+
+
+  if query[0] == 'OR':
+    output = union([pl1, pl2, pl3])
+
+  if query[0] == 'AND':
+    output = intersect([pl1, pl2, pl3])
+    if len(output) == 0:
+      output = pl1
+  return output
+
+
 
